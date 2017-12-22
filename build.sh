@@ -26,6 +26,8 @@ function build_x86_64-linux {
     $(pkg-config gtkmm-3.0 --cflags) \
     $cppflags -c $idir $macros $srcpp \
 
+    mkdir -p bin
+
     g++ \
     -o ${outfile}_x86_64-linux $obj \
     $(pcap-config --libs) \
@@ -36,21 +38,7 @@ function build_x86_64-linux {
 }
 
 function build_i686-linux {
-    export PKG_CONFIG_PATH=/usr/lib/pkgconfig
-    export CC="gcc -m32"
-
-    ./res/glade2o.sh res/ui.o res/*.ui
-    ./res/png2o.sh res/png.o res/*.png
-
-    g++ -m32 \
-    $(pcap-config --cflags) \
-    $(pkg-config gtkmm-3.0 --cflags) \
-    $cflags $idir $macros -o ${outfile}_i686-linux $src \
-    $(pcap-config --libs) \
-    $(pkg-config gtkmm-3.0 --libs) \
-    $ldir $libs
-
-    rm -f res/ui.o res/png.o
+    echo -n
 }
 
 function build_x86_64-w64 {
@@ -73,8 +61,8 @@ case $1 in
 ""|"all")
 	build_x86_64-linux;
 #	build_i686-linux;
-	build_x86_64-w64;
-	build_i686-w64;;
+#	build_x86_64-w64;
+#	build_i686-w64;;
 
 esac
 
