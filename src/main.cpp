@@ -457,7 +457,33 @@ void on_about_clicked()
 
 void on_row_selected()
 {
+	TreeModel::iterator it = ltreeview->get_selection()->get_selected();
+	if(!it) return;
+	eth_packet_t p = dqpackets[(*it)[lcol.no] - 1];
 
+	uint32_t len = 0;
+	char *const s = (char *) malloc(4*p.len);
+	char *a = s;
+
+	for(int16_t i = 0; len < p.len && i < ETHER_HLEN; ++len, ++i, a += 3) {
+		if(!(len & 31)) *a++ = '\n';
+		sprintf(a, "%02hhX ", p.eth_raw[i]);
+	}
+	for(int16_t i = 0; len < p.len && i < p.net.sz; ++len, ++i, a += 3) {
+		if(!(len & 31)) *a++ = '\n';
+		sprintf(a, "%02hhX ", p.net.raw[i]);
+	}
+	for(int16_t i = 0; len < p.len && i < p.trans.sz; ++len, ++i, a += 3) {
+		if(!(len & 31)) *a++ = '\n';
+		sprintf(a, "%02hhX ", p.trans.raw[i]);
+	}
+	for(int16_t i = 0; len < p.len && i < p.app.sz; ++len, ++i, a += 3) {
+		if(!(len & 31)) *a++ = '\n';
+		sprintf(a, "%02hhX ", p.app.raw[i]);
+	}
+
+	btextview->get_buffer()->set_text(s, a);
+	free(s);
 }
 
 void show_error_message(string msg)
