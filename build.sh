@@ -14,9 +14,6 @@ libs="-lpthread -lboost_thread"
 function build_x86_64-linux {
 export CC="gcc"
 
-./res/glade2o.sh res/ui.o res/*.ui
-./res/png2o.sh res/png.o res/*.png
-
 gcc \
 $(pcap-config --cflags) \
 $cflags -c $idir $macros $src \
@@ -25,8 +22,6 @@ g++ \
 $(pcap-config --cflags) \
 $(pkg-config gtkmm-3.0 --cflags) \
 $cppflags -c $idir $macros $srcpp \
-
-mkdir -p bin
 
 g++ \
 -o ${outfile}_x86_64-linux $obj \
@@ -51,6 +46,13 @@ echo -n
 
 CALLEEDIR=$PWD
 cd "$(dirname "$0")"
+
+chmod +x res/glade2o.sh res/png2o.sh
+
+./res/glade2o.sh res/ui.o res/*.ui
+./res/png2o.sh res/png.o res/*.png
+
+mkdir -p bin
 
 case $1 in
 
