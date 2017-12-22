@@ -12,41 +12,41 @@ ldir=""
 libs="-lpthread -lboost_thread"
 
 function build_x86_64-linux {
-    export CC="gcc"
+export CC="gcc"
 
-    ./res/glade2o.sh res/ui.o res/*.ui
-    ./res/png2o.sh res/png.o res/*.png
+./res/glade2o.sh res/ui.o res/*.ui
+./res/png2o.sh res/png.o res/*.png
 
-    gcc \
-    $(pcap-config --cflags) \
-    $cflags -c $idir $macros $src \
+gcc \
+$(pcap-config --cflags) \
+$cflags -c $idir $macros $src \
 
-    g++ \
-    $(pcap-config --cflags) \
-    $(pkg-config gtkmm-3.0 --cflags) \
-    $cppflags -c $idir $macros $srcpp \
+g++ \
+$(pcap-config --cflags) \
+$(pkg-config gtkmm-3.0 --cflags) \
+$cppflags -c $idir $macros $srcpp \
 
-    mkdir -p bin
+mkdir -p bin
 
-    g++ \
-    -o ${outfile}_x86_64-linux $obj \
-    $(pcap-config --libs) \
-    $(pkg-config gtkmm-3.0 --libs) \
-	$ldir $libs
+g++ \
+-o ${outfile}_x86_64-linux $obj \
+$(pcap-config --libs) \
+$(pkg-config gtkmm-3.0 --libs) \
+$ldir $libs
 
-    rm -f $obj
+rm -f $obj
 }
 
 function build_i686-linux {
-    echo -n
+echo -n
 }
 
 function build_x86_64-w64 {
-	echo -n
+echo -n
 }
 
 function build_i686-w64 {
-	echo -n
+echo -n
 }
 
 CALLEEDIR=$PWD
@@ -59,10 +59,10 @@ case $1 in
 "x86_64-w64") build_x86_64-w64;;
 "i686-w64") build_i686-w64;;
 ""|"all")
-	build_x86_64-linux;
-#	build_i686-linux;
-#	build_x86_64-w64;
-#	build_i686-w64;;
+build_x86_64-linux;
+#    build_i686-linux;
+#    build_x86_64-w64;
+#    build_i686-w64;;
 
 esac
 
