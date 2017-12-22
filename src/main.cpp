@@ -461,6 +461,195 @@ void on_row_selected()
 	if(!it) return;
 	eth_packet_t p = dqpackets[(*it)[lcol.no] - 1];
 
+	string str;
+	ostringstream ss;
+	TreeModel::Row row;
+	TreeModel::Row crow;
+	tmodel->clear();
+
+	row = *(tmodel->append());
+	ss << "Frame " << p.no << ": " << p.len << " bytes caputed";
+	row[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Encapsulation type: Ethernet";
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Arrival Time: " << ctime(&p.ts.tv_sec);
+	crow[tcol.str] = (((str = ss.str()).pop_back()), str); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Epoch Time: " << p.ts.tv_sec + 1e-9f*p.ts.tv_nsec;
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Frame Number: " << p.no;
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Frame Length: " << p.len;
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	row = *(tmodel->append());
+	ss << "Ethernet II, Src: " << ether_ntoa(p.eth.shost) << ", Dst: " << ether_ntoa(p.eth.dhost);
+	row[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Destination: " << ether_ntoa(p.eth.dhost);
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	ss << "Source: " << ether_ntoa(p.eth.shost);
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	crow = *(tmodel->append(row.children()));
+	if(bswap16(p.eth.type) == ETHER_TYPE_IP) ss << "Type: IPv4";
+	else ss << "Type: " << bswap16(p.eth.type);
+	crow[tcol.str] = ss.str(); ss.str("");
+
+	if(p.net.sz) {
+		const struct ip_header *h = ((const struct ip_header *) p.net.raw);
+		row = *(tmodel->append());
+		ss << "Internet Protocol Version 4, Src: " << ip_ntoa(h->saddr) << ", Dst: " << ip_ntoa(h->daddr);
+		row[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Version: " << h->version;
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Header Length: " << 4*h->ihl << " bytes";
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Differentiated Services Codepoint: " << h->dscp;
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Explicit Congestion Notification: " << h->ecn;
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Total Length: " << bswap16(h->tot_len);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Identification: " << bswap16(h->id);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Flags: " << (bswap16(h->flags_frag_off) >> 13);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Fragment offset: " << (bswap16(h->flags_frag_off) & 0x1FFF);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Time to live: " << (unsigned) (h->ttl);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		if(p.trans.type && p.trans.type < TYPE_SZ) ss << "Protocol: " << ltypes[p.trans.type];
+		else ss << "Protocol: " << (unsigned) (h->protocol);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Header checksum: " << bswap16(h->check);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Source: " << ip_ntoa(h->saddr);
+		crow[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Destination: " << ip_ntoa(h->daddr);
+		crow[tcol.str] = ss.str(); ss.str("");
+	}
+
+	if(p.trans.sz) {
+		if(p.trans.type == TYPE_TCP) {
+			const struct tcp_header *h = ((const struct tcp_header *) p.trans.raw);
+			row = *(tmodel->append());
+			ss << "Transmission Control Protocol, Src Port: " << bswap16(h->source) << ", Dst Port: " << bswap16(h->dest);
+			row[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Source Port: " << bswap16(h->source);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Destination Port: " << bswap16(h->dest);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Sequence number: " << bswap32(h->seq);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Acknowledgment number: " << bswap32(h->ack_seq);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Header Length: " << 4*h->doff << " bytes";
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Flags: " << ((h->res << 9) | (h->ns << 8) | (h->lb_flags));
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Window size value: " << bswap16(h->window);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Checksum: " << bswap16(h->check);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Urgent pointer: " << bswap16(h->urg_ptr);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			if(h->doff - 5 > 0) {
+				crow = *(tmodel->append(row.children()));
+				ss << "Options: " << 4*(h->doff - 5) << " bytes";
+				crow[tcol.str] = ss.str(); ss.str("");
+			}
+		} else if(p.trans.type == TYPE_UDP) {
+			const struct udp_header *h = ((const struct udp_header *) p.trans.raw);
+			row = *(tmodel->append());
+			ss << "User Datagram Protocol, Src Port: " << bswap16(h->sport) << ", Dst Port: " << bswap16(h->dport);
+			row[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Source Port: " << bswap16(h->sport);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Destination Port: " << bswap16(h->dport);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Length: " << bswap16(h->ulen);
+			crow[tcol.str] = ss.str(); ss.str("");
+
+			crow = *(tmodel->append(row.children()));
+			ss << "Checksum: " << bswap16(h->sum);
+			crow[tcol.str] = ss.str(); ss.str("");
+		}
+	}
+
+	if(p.app.sz) {
+		row = *(tmodel->append());
+		ss << ((p.app.type && p.app.type < TYPE_SZ) ? ltypes[p.app.type] : "Data");
+		row[tcol.str] = ss.str(); ss.str("");
+
+		crow = *(tmodel->append(row.children()));
+		ss << "Size: " << p.app.sz << " bytes";
+		crow[tcol.str] = ss.str(); ss.str("");
+	}
+
 	uint32_t len = 0;
 	char *const s = (char *) malloc(4*p.len);
 	char *a = s;
